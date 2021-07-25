@@ -6,10 +6,10 @@ Created on Thu Jul 22 08:08:41 2021
 """
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib
 
 def square(x):
     return 1-x**2
-## Nao consegui fazer esse, ajude por favor
 def gaussian(x,m,dp):
     return (((1/(np.sqrt(2*np.pi)*dp))*np.e**((-1/2)*((x-m)/dp)**2))/((1/(np.sqrt(2*np.pi)*dp))*np.e**((-1/2)*((m-m)/dp)**2)))
 def exponencial(x):
@@ -47,15 +47,56 @@ def IENcreate(ne):
         
 
 
-def plotMalha2D(Lx = 1, Ly = 1, n_pointsx=4,n_pointsy=4):
+def getXY(n_pointsx=4,n_pointsy=4,Lx = 1, Ly = 1, mode="square"):
     x = []
     y = []
     for i in range(0,n_pointsy):
         for j in range(0,n_pointsx):
             x.append(j/(n_pointsx-1))
             y.append(i/(n_pointsy-1))
-    plt.plot(x,y,'o')
+    plt.plot(x,y,'ko')
+    IEN = IEN2D(n_pointsx,n_pointsy,mode)
+    return x,y,IEN
 
+def plotMalhaQuadrada(X,Y,IEN):
+    xy = np.stack((X, Y), axis=-1)
+    verts = xy[IEN]
+    ax=plt.gca()
+    pc = matplotlib.collections.PolyCollection(verts,edgecolors=('black',),
+                                                 facecolors='lightblue',
+                                                 linewidths=(0.7,))
+    ax.add_collection(pc)
+    plt.plot(X,Y,'ko')
+
+def IEN2D(nx,ny, mode="square"):
+    if(mode=="square"):
+        ne = (nx-1)*(ny-1)
+        IEN = np.zeros((ne,4),dtype=int)
+        i = 0
+        for e in range(0,ne):
+            if(e!=0 and ((e-1)%(nx-1)) == (nx - 2)):
+                IEN[e] = [i+1,i+2,i+nx+2,i+nx+1]
+                i += 2
+            else:
+                IEN[e] = [i,i+1,i+nx+1,i+nx]
+                i += 1
+    elif(mode=="triangle"):
+        ne = (nx-1)*(ny-1)*2
+        IEN = np.zeros((ne,3),dtype=int)
+        i = 0
+        for e in range(0,ne,2):
+            print(((e-1)%((nx-1)*2)))
+            if(e!=0 and (((e/2) -1)%((nx-1))) == (nx - 2)):
+                IEN[e] = [i+1,i+nx+2,i+nx+1]
+                IEN[e+1] = [i+1,i+nx+2,i+2]
+                i += 2
+            else:
+                IEN[e] = [i,i+nx+1,i+nx]
+                IEN[e+1] = [i,i+nx+1,i+1]
+                i += 1
+            print(e)
+    return IEN
 
 if __name__ == '__main__':
-    plotMalha1D(mode = "gaussian");
+    X,Y,IEN = getXY(mode="triangle")
+    plotMalhaQuadrada(X,Y,IEN)
