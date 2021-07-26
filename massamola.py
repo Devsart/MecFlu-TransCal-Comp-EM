@@ -46,7 +46,7 @@ if __name__ == '__main__':
     vv, va, xn, xa, tt, mape_v = massamola(0.01,0.1,1,10,100)
     fig, axs = plt.subplots(2)
     fig.suptitle('Análise do Sistema Massa Mola')
-    fig.figsize = (200,200)
+    fig.set_size_inches(10, 10)
     axs[0].plot(tt,va,'k',linewidth=2,label='Solução Analítica')
     axs[0].plot(tt[::200],vv[::200],'ko',linewidth=2,label = 'Solução Numérica')
     axs[0].set(xlabel='t[s]',ylabel='v[m/s]')
