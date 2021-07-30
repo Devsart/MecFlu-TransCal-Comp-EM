@@ -44,13 +44,22 @@ def plotMalhaTri(X,Y,Tri):
         crit_list.append(crit)
         
     fig, ax = plt.subplots()
+    fig.set_size_inches(10, 10)
     ax.set_aspect('equal')
     ax.set_title("Malha de Triângulos")
 
     ax = plt.triplot(X,Y,IEN,color='k',linewidth=0.5)
     ax = plt.plot(X,Y,'ko',markersize=2)
     for i in range(0,npoints):
-        plt.text(X[i]+0.02,Y[i]+0.03,str(i),color='k')
+        plt.text(X[i]+0.01,Y[i]+0.01,str(i),size='x-small',color='k')
+    for e in range(0,ne):
+        [v1,v2,v3] = IEN[e]
+        xm = ( X[v1]+X[v2]+X[v3] )/3.0
+        ym = ( Y[v1]+Y[v2]+Y[v3] )/3.0
+        draw_circle = plt.Circle((xm+0.01, ym+0.01), 0.025, fill=False, color='gray')
+        plt.text(xm,ym,str(e),size='xx-small',color='gray')
+        plt.gcf().gca().add_artist(draw_circle)
+
     plt.gca().set_aspect('equal')
     plt.tripcolor(Tri, crit_list, edgecolors='k',cmap='Blues',vmin=0,vmax=1)
     plt.colorbar()
