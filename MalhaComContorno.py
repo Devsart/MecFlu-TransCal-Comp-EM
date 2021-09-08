@@ -28,6 +28,7 @@ def plotMalhaTri(X,Y,Tri):
     ne = IEN.shape[0]
     npoints = X.shape[0]
     crit_list = []
+    A_sum = 0
     for e in range(0,ne):
         [v1,v2,v3] = IEN[e]
         x1 = X[v1]; x2 = X[v2]; x3 = X[v3]
@@ -37,6 +38,7 @@ def plotMalhaTri(X,Y,Tri):
         c = np.sqrt((x2-x1)**2+(y2-y1)**2)
         s = (a + b + c)/2
         A = np.sqrt(s*(s-a)*(s-b)*(s-c)) # Formula de Heron
+        A_sum += A
         ha = 2*A/a
         hb = 2*A/b
         hc = 2*A/c
