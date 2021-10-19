@@ -18,13 +18,15 @@ def getXYRandom(nx=6,ny=7,Lx = 1, Ly = 1):
     Y = np.random.uniform(0.0,Ly,(nx*ny,1))
     Y = (np.transpose(Y.reshape(nx*ny)))
     Tri = matplotlib.tri.Triangulation(X,Y)
-    return X,Y,Tri
+    IEN = Tri.triangles
+    print(X,Y,IEN)
+    return X,Y,IEN
 
-def plotMalhaTri(X,Y,Tri):
+def plotMalhaTri(X,Y,IEN):
     name = 'MalhaTriangularComContorno'
     Path(os.path.join('results', name)).mkdir(parents=True, exist_ok=True)
-    IEN = Tri.triangles
     borda = verificaBorda(X, Y, IEN)
+    print(borda)
     ne = IEN.shape[0]
     npoints = X.shape[0]
     crit_list = []
@@ -70,7 +72,7 @@ def plotMalhaTri(X,Y,Tri):
     plt.gca().set_aspect('equal')
     plt.tripcolor(Tri, crit_list, edgecolors='k',cmap='Blues',vmin=0,vmax=1)
     plt.colorbar()
-    plt.savefig(os.path.join('results', name, 'Malha_de_Triangulos_com_Contorno.png'))
+    ##plt.savefig(os.path.join('results', name, 'Malha_de_Triangulos_com_Contorno.png'))
 
 def verificaBorda(X,Y,IEN):
     IENBounds = []
@@ -108,6 +110,7 @@ def verificaBorda(X,Y,IEN):
 
 def organizadorIEN(lista):
     ## Percorre a lista de arestas isoladas, organizando pelos vertices
+    print(lista)
     for i in range(0,len(lista)-1):
         for j in range(0,len(lista)):
             if(lista[i][1] == lista[j][0]):
@@ -122,11 +125,13 @@ def organizadorIEN(lista):
             split.append(lista[i:m])
             i = m
     split.append(lista[n:])
+    print(split)
     ## Armazena numa IEN os diferentes contornos, 
     ## identificando tanto os externos quanto internos
     IENs = []
     for b in range(0,len(split)):
-        contorno = split[b]    
+        contorno = split[b] 
+        print(contorno)
         IEN = np.zeros((len(contorno),1),dtype=int)
         IEN[0] = contorno[0][0]
         for k in range(0,len(contorno)-1):

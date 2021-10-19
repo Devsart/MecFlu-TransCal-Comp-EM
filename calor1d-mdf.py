@@ -19,12 +19,13 @@ dx = L/ne
 # cond. termica e fonte de calor variaveis
 k = np.ones( (npoints),dtype='float' )
 Q = np.ones( (npoints),dtype='float' )
+X = np.linspace(0,L,npoints)
 #--------------------------------------------------
-# for i in range(0,npoints):
-#  if X[i] > 0.3:
-#   k[i] = 0.01
-#  if X[i] > 0.5:
-#   Q[i] = 3.0
+for i in range(0,npoints):
+    if X[i] > 0.3:
+        k[i] = 0.01
+    if X[i] > 0.5:
+        Q[i] = 3.0
 #-------------------------------------------------- 
   
 
@@ -35,7 +36,6 @@ Te = 1.0
 Td = 0.0
 
 # geracao dos pontos
-X = np.linspace(0,L,npoints)
 
 # geracao da matriz de conectividade
 IEN = np.zeros( (ne,2),dtype='int' )

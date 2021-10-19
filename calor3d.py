@@ -41,8 +41,8 @@ cc1 = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
 cc2 = [7,11]
 cc3 = [12,13,14,15]
 cc4 = [4,8]
-cc5 = ???
-cc6 = ???
+cc5 = [6,7,9,10]
+cc6 = [2,14]
 cc = cc1 + cc2 + cc3 + cc4 + cc5 + cc6
 inner = [21,22,25,26,37,38,41,42]
 
@@ -96,8 +96,8 @@ for i in inner:
  A[i,i+1] = 1/(dx*dx)                       # esquerda
  A[i,i-nx] = 1/(dy*dy)                      # baixo
  A[i,i+nx] = 1/(dy*dy)                      # cima
- A[] = 1/(dz*dz)                            # frente
- A[] = 1/(dz*dz)                            # tras
+ A[i,i-ny] = 1/(dz*dz)                            # frente
+ A[i,i-ny] = 1/(dz*dz)                            # tras
 
 # solucao do sistema linear Ax=b
 Ainv = np.linalg.inv(A)

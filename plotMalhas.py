@@ -50,7 +50,7 @@ def IENcreate(ne):
         
 
 
-def getXY(n_pointsx=4,n_pointsy=4,Lx = 1, Ly = 1, mode="square",function="sin",coef=.2):
+def getXY(n_pointsx=4,n_pointsy=4,Lx = 1, Ly = 1, mode="square",function="None",coef=.2):
     x = []
     y = []
     for i in range(0,n_pointsy):
@@ -59,14 +59,21 @@ def getXY(n_pointsx=4,n_pointsy=4,Lx = 1, Ly = 1, mode="square",function="sin",c
             y.append(i/(n_pointsy-1))
     IEN = IEN2D(n_pointsx,n_pointsy,mode)
     if(function=="sin"):
-        y[-n_pointsx::] += np.sin(np.multiply(x[:n_pointsx:],2*np.pi))*coef
-    return x,y,IEN
+        y[-n_pointsx::] += y[-n_pointsx::]*np.sin(np.multiply(x[:n_pointsx:],2*np.pi))*coef
+        y[-2*n_pointsx:-n_pointsx:] += y[-2*n_pointsx:-n_pointsx:]*np.sin(np.multiply(x[:n_pointsx:],2*np.pi))*coef
+        y[-3*n_pointsx:-2*n_pointsx:] += y[-3*n_pointsx:-2*n_pointsx:]*np.sin(np.multiply(x[:n_pointsx:],2*np.pi))*coef
+        y[-4*n_pointsx:-3*n_pointsx:] += y[-4*n_pointsx:-3*n_pointsx:]*np.sin(np.multiply(x[:n_pointsx:],2*np.pi))*coef
+    x_array = np.asarray(x)
+    x_array = (np.transpose(x_array.reshape(n_pointsx*n_pointsy)))
+    y_array = np.asarray(y)
+    y_array = (np.transpose(y_array.reshape(n_pointsx*n_pointsy)))
+    IEN_array = np.asarray(IEN)
+    return x_array,y_array,IEN_array
 
 def plotMalhaQuadrada(X,Y,IEN):
     name = 'Malha Ordenada'
     Path(os.path.join('results', name)).mkdir(parents=True, exist_ok=True)
     ne = IEN.shape[0]
-    crit_list = []
     crit_list = []
     for e in range(0,ne):
         [v1,v2,v3] = IEN[e]
@@ -86,12 +93,12 @@ def plotMalhaQuadrada(X,Y,IEN):
     verts = xy[IEN]
     ax=plt.gca()
     pc = matplotlib.collections.PolyCollection(verts,edgecolors=('black',),
-                                                 facecolor='blue',
+                                                 facecolor='None',
                                                  linewidths=(0.7,))
     pc.set_color(crit_list)
     ax.add_collection(pc)
     plt.plot(X,Y,'ko')
-    plt.savefig(os.path.join('results', name, 'Malha_Ordenada.png'))
+    plt.savefig(os.path.join('results', name, 'malha_senoidal_colorida.png'))
 
 def IEN2D(nx,ny, mode="square"):
     if(mode=="square"):
@@ -110,7 +117,6 @@ def IEN2D(nx,ny, mode="square"):
         IEN = np.zeros((ne,3),dtype=int)
         i = 0
         for e in range(0,ne,2):
-            print(((e-1)%((nx-1)*2)))
             if(e!=0 and (((e/2) -1)%((nx-1))) == (nx - 2)):
                 IEN[e] = [i+1,i+nx+2,i+nx+1]
                 IEN[e+1] = [i+1,i+nx+2,i+2]
@@ -119,9 +125,7 @@ def IEN2D(nx,ny, mode="square"):
                 IEN[e] = [i,i+nx+1,i+nx]
                 IEN[e+1] = [i,i+nx+1,i+1]
                 i += 1
-            print(e)
     return IEN
-
 if __name__ == '__main__':
-    X,Y,IEN = getXY(mode="triangle")
+    X,Y,IEN = getXY(mode="triangle", function="sin")
     plotMalhaQuadrada(X,Y,IEN)

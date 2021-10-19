@@ -35,13 +35,13 @@ inner = [5,6,9,10]
 
 bc = 0*np.ones( (npoints),dtype='float' )
 for i in cc1:
- bc[i] = X[i]
+ bc[i] = 27
 for i in cc2:
- bc[i] = Y[i]*Y[i] + 1
+ bc[i] = 60
 for i in cc3:
- bc[i] = X[i]*X[i] + 1
+ bc[i] = 100
 for i in cc4:
- bc[i] = Y[i]
+ bc[i] = 60
 
 #--------------------------------------------------
 # # # plot 2D cor (quadrilatero)
