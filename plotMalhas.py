@@ -37,9 +37,9 @@ def plotMalha1D(n_points=100,x_start=0,x_end= 10.,mode="linear"):
     plt.plot(xx,y,'.')
     if(mode == "linear"):
         return plt.plot(x,y,'.')
-    #if(mode == "quad"):
-     #   x = 1/(1/(np.sqrt(2*np.pi)*2))*np.e**((-1/2)*((x-(x_end/2))/2)**2)
-      #  return plt.plot(x,y,'.')
+    if(mode == "quad"):
+        x = 1/(1/(np.sqrt(2*np.pi)*2))*np.e**((-1/2)*((x-(x_end/2))/2)**2)
+        return plt.plot(x,y,'.')
     
 # matriz de conectividade IEN
 def IENcreate(ne):

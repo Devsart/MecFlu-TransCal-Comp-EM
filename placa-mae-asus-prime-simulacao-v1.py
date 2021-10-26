@@ -78,33 +78,33 @@ import meshio
 
 
 
-name = 'calor_transiente_mef_2d_triangular_final'
-Path(os.path.join(name,'resultados_implicito_placa_dell_v4_cooler')).mkdir(parents=True, exist_ok=True)
-Path(os.path.join(name,'resultados_explicito_placa_dell')).mkdir(parents=True, exist_ok=True)
-Path(os.path.join(name,'resultados_crank_nicholson_placa_dell')).mkdir(parents=True, exist_ok=True)
+name = 'calor_transiente_mef_2d_triangular_placa_asus'
+Path(os.path.join(name,'resultados_implicito_placa_asus_4_coolers')).mkdir(parents=True, exist_ok=True)
+Path(os.path.join(name,'resultados_explicito_placa_asus')).mkdir(parents=True, exist_ok=True)
+Path(os.path.join(name,'resultados_crank_nicholson_placa_asus')).mkdir(parents=True, exist_ok=True)
 
 def montaKM(X,Y,IEN,regions):
     npoints = X.shape[0]
-    q = 10000
-    cooler = 0
+    q = 500
+    cooler = 1
     if(cooler == 1):
-            q -= 800
-    cpSi = 712  ## 
-    rhoSi = 2330
+        q = 300
+    cpSi = .712  ## 
+    rhoSi = 2.330
     kappa_Si = 1.50
-    alpha_SiAl = (7.172*1e-5)
-    cpPet = 712 ## https://www.plastmetal.com.br/tabelas/820116434bbd/tabela_de_propriedades_polietileno.pdf SINTMID
-    rhoPet = 1790
-    kappa_Pet = 0.085
-    alpha_ladeVidro = (22.6*1e-7) # https://www.braskem.com.br/Portal/Principal/Arquivos/html/boletm_tecnico/Tabela_de_Propriedades_de_Referencia_dos_Compostos_de_PVC.pdf
-    cpCu = 394
-    rhoCu = 8960
-    kappa_Cu = 4.01
-    alpha_Cu = (11.234*1e-5)
-    cpAl = 921
-    rhoAl = 2700
-    kappa_Al = 204
-    alpha_Al = (8.418*1e-5)
+    alpha_SiAl = (7.172*1e-3)
+    cpPet = .712 ## https://www.plastmetal.com.br/tabelas/820116434bbd/tabela_de_propriedades_polietileno.pdf SINTMID
+    rhoPet = 1.790
+    kappa_Pet = 8.5
+    alpha_ladeVidro = (22.6*1e-5) # https://www.braskem.com.br/Portal/Principal/Arquivos/html/boletm_tecnico/Tabela_de_Propriedades_de_Referencia_dos_Compostos_de_PVC.pdf
+    cpCu = .394
+    rhoCu = 8.960
+    kappa_Cu = 3.86
+    alpha_Cu = (11.234*1e-3)
+    cpAl = .921
+    rhoAl = 2.707
+    kappa_Al = 2.04
+    alpha_Al = (8.418*1e-3)
     alpha = np.ones(len(IEN), dtype='float')
     kappa = np.ones(len(IEN), dtype='float')
     rho = np.ones(len(IEN), dtype='float')
@@ -131,7 +131,7 @@ def montaKM(X,Y,IEN,regions):
             cv[elem] = cpPet
             rho[elem] = rhoPet
             alpha[elem] = alpha_ladeVidro
-        if(regions[elem] == 2): ## Alimentador
+        if(regions[elem] == 8): ## Alimentador
             kappa[elem] = kappa_Al
             cv[elem] = cpAl
             rho[elem] = rhoAl
@@ -139,7 +139,7 @@ def montaKM(X,Y,IEN,regions):
             Q[v1] = q*0.1/(rho[elem]*cv[elem])
             Q[v2] = q*0.1/(rho[elem]*cv[elem])
             Q[v3] = q*0.1/(rho[elem]*cv[elem])
-        if(regions[elem] in [3,4]): ## Processador AMD4
+        if(regions[elem] in [2,3]): ## Processador AMD4
             kappa[elem] = kappa_Si
             cv[elem] = cpSi
             rho[elem] = rhoSi
@@ -147,7 +147,7 @@ def montaKM(X,Y,IEN,regions):
             Q[v1] = q*0.1/(rho[elem]*cv[elem])
             Q[v2] = q*0.1/(rho[elem]*cv[elem])
             Q[v3] = q*0.1/(rho[elem]*cv[elem])
-        if(regions[elem] == 5): ## SSD M2
+        if(regions[elem] == 7): ## SSD M2
             kappa[elem] = kappa_Cu
             cv[elem] = cpCu
             rho[elem] = rhoCu
@@ -155,7 +155,7 @@ def montaKM(X,Y,IEN,regions):
             Q[v1] = q*0.1/(rho[elem]*cv[elem])
             Q[v2] = q*0.1/(rho[elem]*cv[elem])
             Q[v3] = q*0.1/(rho[elem]*cv[elem])
-        if(regions[elem] in [6,7]): ## Memoria RAM DDR4
+        if(regions[elem] in [4,5]): ## Memoria RAM DDR4
             kappa[elem] = kappa_Cu
             cv[elem] = cpCu
             rho[elem] = rhoCu
@@ -163,7 +163,7 @@ def montaKM(X,Y,IEN,regions):
             Q[v1] = q*0.1/(rho[elem]*cv[elem])
             Q[v2] = q*0.1/(rho[elem]*cv[elem])
             Q[v3] = q*0.1/(rho[elem]*cv[elem])
-        if(regions[elem] == 8): ## Placa de Video SATA 6Gbs
+        if(regions[elem] == 6): ## Placa de Video SATA 6Gbs
             kappa[elem] = kappa_Si
             cv[elem] = cpSi
             rho[elem] = rhoSi
@@ -255,10 +255,10 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
     # cv=1.
     # q=1000.
     e=1.
-    Ti = 27.
+    Ti = 27
     Tc = Ti
 
-    msh = meshio.read('placa-mae-dell-inspiron-5547.msh')
+    msh = meshio.read('placa-mae-dell-inspiron-5547-v2.msh')
     X = msh.points[:,0]
     Y = msh.points[:,1]
     IEN = msh.cells['triangle']
@@ -267,14 +267,14 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
     regions = msh.cell_data['triangle']['gmsh:geometrical']
     contorno_mae_v2 = [0,36,37,38,3,39,40,41,42,43,44,45,2,46,47,48,1,49,50,51,52,53,54,55]
     contorno_dell = [31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,2,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,3,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,3,213,214,30,219,220,0,244,28,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,1]
-
-
+    contorno_dell_v2 = [0,32,33,34,35,36,37,38,3,40,41,42,43,44,45,2,46,47,48,49,50,51,52,1,53,54,55,56,57,58,59,0]
+   
     K,M,Q,npoints = montaKM(X,Y,IEN,regions)
     cc = IENbound = msh.cells['line']
     # A,Q,beta = Drichlet2D(npoints,K,M,ccL,ccR,ccTop,ccBot)
     
     T = Ti*np.ones((npoints),dtype='float')
-    for c in contorno_dell:
+    for c in contorno_dell_v2:
         T[c] = Tc
     
     # for i in range(0,npoints):
@@ -291,7 +291,7 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
         Tpast = T
         A = (M/dt + theta*K)
         b = ((M/dt)@T + M@Q - ((1-theta)*K)@T)
-        for i in contorno_dell:
+        for i in contorno_dell_v2:
             A[i,:] = 0.0
             A[i,i] = 1.0
             b[i] = Tc
@@ -313,10 +313,14 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
         xy = np.stack((X, Y), axis=-1)
         verts = xy[IEN]
         verts2 = xy[cc]
+        indice, = np.where(T == T.max())
+        XTmax = X[indice]
+        YTmax = Y[indice]
+        Tmax = T[indice]
         fig, ax = plt.subplots()
         surf = ax.tricontourf(X,Y,Z,200,cmap=matplotlib.cm.jet, extent=(X.min(),
                            X.max(), Y.min(), Y.max()),vmin=0,vmax=180)
-        fig.set_size_inches(8, 8)
+        fig.set_size_inches(10, 10)
         ax=plt.gca()
         pc = matplotlib.collections.PolyCollection(verts,edgecolors=('lightgray',),
                                                       facecolor='None',
@@ -327,9 +331,9 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
                                                       linewidths=(0.7,))
         ax.add_collection(pc2)
         #plt.plot(X,Y,'w.')
-        plt.title('Distrubuição de calor no regime transiente 2D')
-        plt.xlabel('comprimento da placa no eixo X [cm]')
-        plt.ylabel('comprimento da placa no eixo Y [cm]')
+        plt.title(r'Solution of $\frac{M}{dt} T^{n+1} + \theta \alpha K T^{n+1} = \frac{M}{dt} T^{n} + Q^{n} + ( 1 - \theta ) \alpha K T^{n} $'+"\n$T_{max}$"+f" = {Tmax[0]}, "+"$X_{Tmax}$ = "+f"{XTmax[0]}, "+"$Y_{Tmax}$ = "+f"{YTmax[0]}"+f"\n # de nós = {npoints}\n # de elementos = {ne}")
+        plt.xlabel('comprimento da placa no eixo X [m]')
+        plt.ylabel('comprimento da placa no eixo Y [m]')
         #surf = plt.imshow(X,Y,Z, interpolation='quadric', origin='lower',
         #                  cmap=matplotlib.cm.jet, extent=(X.min(),
         #                  X.max(), Y.min(), Y.max()))
@@ -343,30 +347,36 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
         plt.yticks(laby)
         subname = '???'
         if(theta == 0):
-            subname = 'resultados_explicito_placa_dell'
+            subname = 'resultados_explicito_placa_asus'
         if(theta == 1):
-            subname = 'resultados_implicito_placa_dell_v4_cooler'
+            subname = 'resultados_implicito_placa_asus_4_coolers'
         if(theta == 1/2):
-            subname = 'resultados_crank_nicholson_placa_dell'
+            subname = 'resultados_crank_nicholson_placa_asus'
         plt.savefig(os.path.join(name, subname, f'{index:04}.png'))
         plt.show()
         index += 1
         ## mean squared error MSE
         e = np.sum((T - Tpast)**2)/T.shape[0]
+    indice, = np.where(T == T.max())
+    XTmax = X[indice]
+    YTmax = Y[indice]
+    Tmax = T[indice]
+    print(f"T_max = {Tmax} \nX = {XTmax}\nY = {YTmax}")
     fp_in = f"./{name}/{subname}/*.png"
     fp_out = f"./{name}/{subname}/simulacao.gif"
     
     img, *imgs = [Image.open(f) for f in sorted(glob.glob(fp_in))]
     img.save(fp=fp_out, format='GIF', append_images=imgs,
               save_all=True, duration=dt*1000, loop=0)
-solveWithTheta(1,3600)
-# msh = meshio.read('placa-mae-dell-inspiron-5547.msh')
-# X = msh.points[:,0]
-# Y = msh.points[:,1]
-# IEN = msh.cells['triangle']
-# npoints = len(X) 
-# ne = IEN.shape[0]
-# regions = msh.cell_data['triangle']['gmsh:geometrical']
-# contorno = [31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,2,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,3,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,3,213,214,30,219,220,0,244,28,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,1]
+solveWithTheta(1,0.1)
+msh = meshio.read('placa-mae-dell-inspiron-5547-v2.msh')
+X = msh.points[:,0]
+Y = msh.points[:,1]
+IEN = msh.cells['triangle']
+npoints = len(X) 
+ne = IEN.shape[0]
+regions = msh.cell_data['triangle']['gmsh:geometrical']
+contorno = [31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,2,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,3,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,3,213,214,30,219,220,0,244,28,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,1]
 
-# print(X)  
+
+#print('Solution of $\dfrac{\partial u}{\partial t} + u \dfrac{\partial u}{\partial x} = \dfrac{0.01}{\pi} \dfrac{\partial^2 u}{\partial x^2}$')  

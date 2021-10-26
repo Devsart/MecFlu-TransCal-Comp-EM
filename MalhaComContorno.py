@@ -72,7 +72,7 @@ def plotMalhaTri(X,Y,IEN):
     plt.gca().set_aspect('equal')
     plt.tripcolor(Tri, crit_list, edgecolors='k',cmap='Blues',vmin=0,vmax=1)
     plt.colorbar()
-    ##plt.savefig(os.path.join('results', name, 'Malha_de_Triangulos_com_Contorno.png'))
+    plt.savefig(os.path.join('results', name, 'Malha_de_Triangulos_com_Contorno.png'))
 
 def verificaBorda(X,Y,IEN):
     IENBounds = []
