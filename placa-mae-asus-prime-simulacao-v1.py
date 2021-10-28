@@ -79,32 +79,32 @@ import meshio
 
 
 name = 'calor_transiente_mef_2d_triangular_placa_asus'
-Path(os.path.join(name,'resultados_implicito_placa_asus_4_coolers')).mkdir(parents=True, exist_ok=True)
+Path(os.path.join(name,'resultados_implicito_placa_asus_corrigido')).mkdir(parents=True, exist_ok=True)
 Path(os.path.join(name,'resultados_explicito_placa_asus')).mkdir(parents=True, exist_ok=True)
 Path(os.path.join(name,'resultados_crank_nicholson_placa_asus')).mkdir(parents=True, exist_ok=True)
 
 def montaKM(X,Y,IEN,regions):
     npoints = X.shape[0]
-    q = 500
-    cooler = 1
+    q = 1370000
+    cooler = 0
     if(cooler == 1):
         q = 300
-    cpSi = .712  ## 
-    rhoSi = 2.330
-    kappa_Si = 1.50
-    alpha_SiAl = (7.172*1e-3)
-    cpPet = .712 ## https://www.plastmetal.com.br/tabelas/820116434bbd/tabela_de_propriedades_polietileno.pdf SINTMID
-    rhoPet = 1.790
+    cpSi = 712  ## 
+    rhoSi = 2330
+    kappa_Si = 150
+    alpha_SiAl = (7.172*1e-5)
+    cpPet = 712 ## https://www.plastmetal.com.br/tabelas/820116434bbd/tabela_de_propriedades_polietileno.pdf SINTMID
+    rhoPet = 1790
     kappa_Pet = 8.5
-    alpha_ladeVidro = (22.6*1e-5) # https://www.braskem.com.br/Portal/Principal/Arquivos/html/boletm_tecnico/Tabela_de_Propriedades_de_Referencia_dos_Compostos_de_PVC.pdf
-    cpCu = .394
-    rhoCu = 8.960
-    kappa_Cu = 3.86
-    alpha_Cu = (11.234*1e-3)
-    cpAl = .921
-    rhoAl = 2.707
-    kappa_Al = 2.04
-    alpha_Al = (8.418*1e-3)
+    alpha_ladeVidro = (22.6*1e-7) # https://www.braskem.com.br/Portal/Principal/Arquivos/html/boletm_tecnico/Tabela_de_Propriedades_de_Referencia_dos_Compostos_de_PVC.pdf
+    cpCu = 394
+    rhoCu = 8960
+    kappa_Cu = 386
+    alpha_Cu = (11.234*1e-5)
+    cpAl = 921
+    rhoAl = 2707
+    kappa_Al = 204
+    alpha_Al = (8.418*1e-5)
     alpha = np.ones(len(IEN), dtype='float')
     kappa = np.ones(len(IEN), dtype='float')
     rho = np.ones(len(IEN), dtype='float')
@@ -124,8 +124,8 @@ def montaKM(X,Y,IEN,regions):
         bj = yk - yi
         bk = yi - yj
         ci = xk - xj
-        ck = xi - xk
-        cj = xj - xi
+        cj = xi - xk
+        ck = xj - xi
         if(regions[elem] == 1): ##Base da Placa
             kappa[elem] = kappa_Pet
             cv[elem] = cpPet
@@ -349,7 +349,7 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
         if(theta == 0):
             subname = 'resultados_explicito_placa_asus'
         if(theta == 1):
-            subname = 'resultados_implicito_placa_asus_4_coolers'
+            subname = 'resultados_implicito_placa_asus_corrigido'
         if(theta == 1/2):
             subname = 'resultados_crank_nicholson_placa_asus'
         plt.savefig(os.path.join(name, subname, f'{index:04}.png'))
@@ -368,7 +368,7 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
     img, *imgs = [Image.open(f) for f in sorted(glob.glob(fp_in))]
     img.save(fp=fp_out, format='GIF', append_images=imgs,
               save_all=True, duration=dt*1000, loop=0)
-solveWithTheta(1,0.1)
+solveWithTheta(1,3600)
 msh = meshio.read('placa-mae-dell-inspiron-5547-v2.msh')
 X = msh.points[:,0]
 Y = msh.points[:,1]

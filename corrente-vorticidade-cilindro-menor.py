@@ -20,9 +20,9 @@ import copy
 
 
 name = 'funcao_corrente_vorticidade_mef_2d_triangular'
-Path(os.path.join(name,'resultados_cilindro_implicito')).mkdir(parents=True, exist_ok=True)
-Path(os.path.join(name,'resultados_explicito')).mkdir(parents=True, exist_ok=True)
-Path(os.path.join(name,'resultados_crank_nicholson')).mkdir(parents=True, exist_ok=True)
+Path(os.path.join(name,'resultados_cilindro_v3_implicito')).mkdir(parents=True, exist_ok=True)
+Path(os.path.join(name,'resultados_explicito_v3')).mkdir(parents=True, exist_ok=True)
+Path(os.path.join(name,'resultados_crank_nicholson_v3')).mkdir(parents=True, exist_ok=True)
 
 def getContorno(IENBound):
     contorno = []
@@ -47,49 +47,115 @@ def getContorno(IENBound):
     return contorno,entrada,top,saida,bot
 
 
-def montaKM(X,Y,IEN,regions):
-    npoints = len(X)
-    K = np.zeros( (npoints,npoints),dtype='float' )
-    M = np.zeros( (npoints,npoints),dtype='float' )
-    Gx = np.zeros( (npoints,npoints),dtype='float' )
-    Gy = np.zeros( (npoints,npoints),dtype='float' )
-    for elem in range(0,len(IEN)):
-        [v1,v2,v3] = IEN[elem]
-        xi,yi = X[v1],Y[v1]
-        xj,yj = X[v2],Y[v2]
-        xk,yk = X[v3],Y[v3]
-        ai = xj*yk - xk*yj
-        aj = xk*yi - xi*yk
-        ak = xi*yj - xj*yj
-        bi = yj - yk
-        bj = yk - yi
-        bk = yi - yj
-        ci = xk - xj
-        cj = xi - xk
-        ck = xj - xi
-        Area = (1.0/2.0)*np.linalg.det([[1.0,xi,yi],[1.0,xj,yj],[1.0,xk,yk]])
-        B = (1.0/(2.0*Area)) * np.array([ [bi, bj, bk],[ci, cj, ck] ])
-        # matriz da matriz B transposta
-        BT = B.transpose()       
-        # matriz de rigidez do elemento
-        ke = Area*np.dot(BT,B)
-        ke_x = (1.0/(4.0*Area))*np.array([[bi*bi,bi*bj,bi*bk],[bj*bi,bj*bj,bj*bk],[bk*bi,bk*bj,bk*bk]])
-        ke_y = (1.0/(4.0*Area))*np.array([[ci*ci,ci*cj,ci*ck],[cj*ci,cj*cj,cj*ck],[ck*ci,ck*cj,ck*ck]])
-        # ke = ke_x + ke_y
-        ge_x = (1.0/6.0)*np.array([[bi,bj,bk],[bi,bj,bk],[bi,bj,bk]],dtype='float64')
-        ge_y = (1.0/6.0)*np.array([[ci,cj,ck],[ci,cj,ck],[ci,cj,ck]],dtype='float64')
-        ge = ge_x + ge_y
-        me = (Area/12.0)*np.array([[2.0,1.0,1.0],[1.0,2.0,1.0],[1.0,1.0,2.0]])
-        for i_loc in range(0,3):
-            i_glb = IEN[elem,i_loc]
-            for j_loc in range(0,3):
-                j_glb = IEN[elem,j_loc]
-                
-                K[i_glb,j_glb] += ke[i_loc,j_loc]
-                M[i_glb,j_glb] += me[i_loc,j_loc]
-                Gx[i_glb,j_glb] += ge_x[i_loc,j_loc]
-                Gy[i_glb,j_glb] += ge_y[i_loc,j_loc]
-    return K,M,Gx,Gy
+def montaKMG(X,Y,IEN):
+	npoints = X.shape[0]
+	K = np.zeros( (npoints,npoints), dtype='float' )
+	M = np.zeros( (npoints,npoints), dtype='float' )
+	Gx = np.zeros( (npoints,npoints), dtype='float' )
+	Gy = np.zeros( (npoints,npoints), dtype='float' )
+
+	for elem in range(0,len(IEN)):
+
+		[v1,v2,v3] = IEN[elem]
+		xi,yi = X[v1],Y[v1]
+		xj,yj = X[v2],Y[v2]
+		xk,yk = X[v3],Y[v3]
+		ai = xj*yk - xk*yj
+		aj = xk*yi - xi*yk
+		ak = xi*yj - xj*yj
+		bi = yj - yk
+		bj = yk - yi
+		bk = yi - yj
+		ci = xk - xj
+		cj = xi - xk
+		ck = xj - xi
+
+		area = (1/2.0)*np.linalg.det([[1, xi, yi], 
+									 [1, xj, yj], 
+									 [1, xk, yk]])
+
+		ke_x = (1/(4.0*area))*np.array([[bi**2, bi*bj, bi*bk], 
+										[bj*bi, bj**2, bj*bk], 
+										[bk*bi, bk*bj, bk**2]])
+
+		ke_y = (1/(4.0*area))*np.array([[ci**2, ci*cj, ci*ck], 
+										[cj*ci, cj**2, cj*ck], 
+										[ck*ci, ck*cj, ck**2]])
+		ke = ke_x + ke_y  
+
+		me = (area/12.0)*np.array([[2.0, 1.0, 1.0], 
+							   [1.0, 2.0, 1.0], 
+							   [1.0, 1.0, 2.0]])
+
+		ge_x = (1/6.0)*np.array([[bi, bj, bk], 
+								[bi, bj, bk], 
+								[bi, bj, bk]])
+
+		ge_y = (1/6.0)*np.array([[ci, cj, ck], 
+								[ci, cj, ck], 
+								[ci, cj, ck]])
+
+
+		for i_loc in range(0,3):
+			i_glb = IEN[elem,i_loc]
+			for j_loc in range(0,3):
+				j_glb = IEN[elem,j_loc]
+				
+				K[i_glb, j_glb] += ke[i_loc, j_loc]
+				M[i_glb, j_glb] += me[i_loc, j_loc]
+				Gx[i_glb, j_glb] += ge_x[i_loc, j_loc]
+				Gy[i_glb, j_glb] += ge_y[i_loc, j_loc]
+
+	return K, M, Gx, Gy
+
+def montaKest(X, Y, IEN, vx, vy, dt):
+
+	npoints = X.shape[0]
+	ne = len(IEN)
+
+	Kest = np.zeros( (npoints,npoints), dtype='float' )
+
+	for elem in range(ne):
+
+		[v1,v2,v3] = IEN[elem]
+		xi,yi = X[v1],Y[v1]
+		xj,yj = X[v2],Y[v2]
+		xk,yk = X[v3],Y[v3]
+		ai = xj*yk - xk*yj
+		aj = xk*yi - xi*yk
+		ak = xi*yj - xj*yj
+		bi = yj - yk
+		bj = yk - yi
+		bk = yi - yj
+		ci = xk - xj
+		cj = xi - xk
+		ck = xj - xi
+
+		vxm = (vx[v1] + vx[v2] + vx[v3])/3
+		vym = (vy[v1] + vy[v2] + vy[v3])/3
+
+		area = (1/2.0)*np.linalg.det([[1, xi, yi], 
+								     [1, xj, yj], 
+								     [1, xk, yk]])
+
+		ke_x = (1/(4.0*area))*np.array([[bi**2, bi*bj, bi*bk], 
+									    [bj*bi, bj**2, bj*bk], 
+									    [bk*bi, bk*bj, bk**2]])
+
+		ke_y = (1/(4.0*area))*np.array([[ci**2, ci*cj, ci*ck], 
+									    [cj*ci, cj**2, cj*ck], 
+									    [ck*ci, ck*cj, ck**2]])
+		ke_xy = ke_x + ke_y  
+
+		ke_est = vxm * dt/2 * (vxm*ke_x + vym*ke_xy) + vym * dt/2 * (vxm*ke_xy + vym*ke_y)
+
+		for i_loc in range(0,3):
+			i_glb = IEN[elem,i_loc]
+			for j_loc in range(0,3):
+				j_glb = IEN[elem,j_loc]
+				
+				Kest[i_glb, j_glb] += ke_est[i_loc, j_loc]
+	return Kest
 
 def contornoPlaca(nx, ny):
     ccL = []
@@ -134,10 +200,11 @@ def solveWithTheta(theta = 1,dt=0.1,lim_e=1e-5):
     """
     nx = 10
     ny = 10
-    
-    v = .001
+    t = 0
+    Re = 30
+    nu = 1/Re
     e=1.
-    msh = meshio.read('duto-furo.msh')
+    msh = meshio.read('duto-furo-menor.msh')
     X = msh.points[:,0]
     Y = msh.points[:,1]
     IEN = msh.cells['triangle']
@@ -152,9 +219,10 @@ def solveWithTheta(theta = 1,dt=0.1,lim_e=1e-5):
     entrada = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
     saida = [67,68,69,70,71,72,73,74,75,76,77,78,79,80,81]
     furo = [4]
-    for i in range(129,208):
+    
+    for i in range(129,192):
         furo.append(i)
-    contorno = [*entrada,*parede_top,*saida,*parede_bot,*furo]
+    contorno = [*entrada,*parede_top,*parede_bot,*saida,*furo]
     Yfuro = Y[furo]
     centro = (Yfuro.max() + Yfuro.min())/2
     # contorno,entrada,parede_top,saida,parede_bot = getContorno(IENBound)
@@ -171,75 +239,35 @@ def solveWithTheta(theta = 1,dt=0.1,lim_e=1e-5):
     for i in entrada:
         vx[i] = 1.0
         vy[i] = 0.0
+    for i in furo:
+        vx[i] = 0.0
+        vy[i] = 0.0
     psi = np.zeros((npoints),dtype='float64')
-    K,M,Gx,Gy = montaKM(X,Y,IEN,regions)
+    K,M,Gx,Gy = montaKMG(X,Y,IEN)
     # A,Q,beta = Drichlet2D(npoints,K,M,ccL,ccR,ccTop,ccBot)
     index = 0
-    Minv = np.linalg.inv(M)
-    gv = Gx@vy-Gy@vx
-    w = Minv@gv
-    while(index <= 999):
-        #w = omegacc.copy()
-        #mapear um n ́o e quais elementos ele pertence e
-        #anotar quais n ́os s~ao esses[
-        # R = []
-        # for NODE in range(0,npoints):
-        #     V=[]
-        #     for i in range(0,ne):
-        #         if IEN[i,0] == NODE :
-        #             V.append(IEN[i,1])
-        #             V.append(IEN[i,2])
-        #         if IEN[i,1] == NODE :
-        #             V.append(IEN[i,0])
-        #             V.append(IEN[i,2])
-        #         if IEN[i,2] == NODE :
-        #             V.append(IEN[i,0])
-        #             V.append(IEN[i,1])
-        #     V = list(set(V))
-        #     R.append(V)
-        
-        # p = np.zeros((npoints,1),dtype = 'float')
-        # ui = np.zeros((npoints,1), dtype = 'float')
-        # vi = np.zeros((npoints,1), dtype = 'float')
-        
-        # #calculo da velocidade ponderada pela distancia
-        # #de cada n ́o vizinho
-        # for i in range(0,len(R)):
-        #     VIZINHOS = R[i]
-        #     sum_xj = 0.0
-        #     sum_yj = 0.0
-        #     sumdist = 0.0
-        #     for j in VIZINHOS:
-        #         dist = np.sqrt(((X[j]-X[i])**2)+((Y[j]-Y[i])**2))
-        #         sumdist += dist
-        #         sum_xj += X[j]*dist
-        #         sum_yj += Y[j]*dist
-    
-        #     ui[i] = 0.2*((sum_xj/sumdist)-X[i])/dt
-        #     #valor da velocidade da malha
-        #     vi[i] = 0.2*((sum_yj/sumdist)-Y[i])/dt
-        #     #valor da velocidade da malha
-        
-        # unew = vx - ui
-        # vnew = vy - vi
-        
-        I = np.eye(len(vx),dtype="float64")
+    w = np.linalg.solve(M,(Gx@vy - Gy@vx))
+    while(index <= 139):
+        t += dt
+        Minv = np.linalg.inv(M)
+        gv = Gx@vy-Gy@vx
+        omegacc = np.linalg.solve(M, (Gx@vy - Gy@vx))
+
+        I = np.identity(npoints)
         vxI = vx*I
         vyI = vy*I
-        # vxnew = unew*I
-        # vynew = vnew*I
         
         VGO = vxI@Gx + vyI@Gy
+        Kest = montaKest(X,Y,IEN,vx,vy,dt)
         
-        A_w = (M.copy()/dt+v*K.copy()+theta*(VGO))
-        b_w = ((M.copy()/dt) - (1-theta)*(VGO))@w
+        A_w = M.copy()/dt + nu*K.copy() + ((vx*I)@Gx + (vy*I)@Gy)
+        b_w = M.copy()/dt @ w
         for i in contorno:
             A_w[i,:] = 0.0
             A_w[i:i] = 1.0
-            b_w[i] = w[i]
+            b_w[i] = omegacc[i]
         ## Solucao vorticidade
-        A_winv = np.linalg.pinv(A_w)
-        w = A_winv@b_w
+        w = np.linalg.solve(A_w,b_w)
         ## Solucao funcao corrente
         A_psi = K.copy()
         b_psi = M@w
@@ -270,8 +298,8 @@ def solveWithTheta(theta = 1,dt=0.1,lim_e=1e-5):
         ## Campo de velocidades
         Gypsi = Gy@psi
         vx = Minv@Gypsi
-        Gxpsi = Gx@psi
-        vy = -Minv@Gxpsi
+        Gxpsi = -Gx@psi
+        vy = Minv@Gxpsi
         ## resolvendo contornos
         for i in parede_top:
             vx[i] = 0.0
@@ -282,14 +310,13 @@ def solveWithTheta(theta = 1,dt=0.1,lim_e=1e-5):
         for i in entrada:
             vx[i] = 1.0
             vy[i] = 0.0
+        for i in furo:
+            vx[i] = 0.0
+            vy[i] = 0.0
         # for k in saida:
         #     vx[k] = 1.0
         #     vy[k] = 0.0
-        Minv = np.linalg.inv(M)
-        gv = Gx@vy-Gy@vx
-        omegacc = Minv@gv
-        for i in contorno:
-            w[i] = omegacc[i]
+        
         Z1 = w
         Z2 = psi
         Z3 = vx
@@ -341,7 +368,7 @@ def solveWithTheta(theta = 1,dt=0.1,lim_e=1e-5):
         ax[1,1].add_collection(pc_cccc)
         ax[1,1].add_collection(pc2_cccc)
         #plt.plot(X,Y,'w.')
-        fig.suptitle(r'Solução da Equação de Corrente-Vorticidade: $(\frac{M}{dt} + \nu K + v.G)w^{n+1} = (\frac{M}{dt})w^{n} $'+"\n\n")
+        fig.suptitle(r'Solução da Equação de Corrente-Vorticidade: $(\frac{M}{dt} + \nu K + v.G)w^{n+1} = (\frac{M}{dt})w^{n} $'+"\n"+f'Re = {Re}; dt = {dt}s; t = {t}s')
         #plt.xlabel('comprimento da placa no eixo X [cm]')
         #plt.ylabel('comprimento da placa no eixo Y [cm]')
         #surf = plt.imshow(X,Y,Z, interpolation='quadric', origin='lower',
@@ -357,11 +384,11 @@ def solveWithTheta(theta = 1,dt=0.1,lim_e=1e-5):
         # plt.yticks(laby)
         subname = '???'
         if(theta == 0):
-            subname = 'resultados_explicito'
+            subname = 'resultados_explicito_v3'
         if(theta == 1):
-            subname = 'resultados_cilindro_implicito'
+            subname = 'resultados_cilindro_v3_implicito'
         if(theta == 1/2):
-            subname = 'resultados_crank_nicholson'
+            subname = 'resultados_crank_nicholson_v3'
         plt.savefig(os.path.join(name, subname, f'{index:04}.png'))
         plt.show()
         index += 1
@@ -373,15 +400,15 @@ def solveWithTheta(theta = 1,dt=0.1,lim_e=1e-5):
     img, *imgs = [Image.open(f) for f in sorted(glob.glob(fp_in))]
     img.save(fp=fp_out, format='GIF', append_images=imgs,
               save_all=True, duration=dt*1000, loop=0)
-#solveWithTheta(1,0.01)
-msh = meshio.read('canalqq.msh')
-X = msh.points[:,0]
-Y = msh.points[:,1]
-IEN = msh.cells['triangle']
-npoints = len(X) 
-ne = IEN.shape[0]
-regions = msh.cell_data['triangle']['gmsh:geometrical']
-IENBound = cc = msh.cells['line']
+solveWithTheta(1,0.05)
+# msh = meshio.read('duto-furo-menor.msh')
+# X = msh.points[:,0]
+# Y = msh.points[:,1]
+# IEN = msh.cells['triangle']
+# npoints = len(X) 
+# ne = IEN.shape[0]
+# regions = msh.cell_data['triangle']['gmsh:geometrical']
+# IENBound = cc = msh.cells['line']
 #contorno,entrada,parede_top,saida,parede_bot = getContorno(IENBound)
 
-print(cc)  
+# print(cc)  

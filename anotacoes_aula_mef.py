@@ -79,32 +79,32 @@ import meshio
 
 
 name = 'calor_transiente_mef_2d_triangular_final'
-Path(os.path.join(name,'resultados_implicito_placa_dell_v4_cooler')).mkdir(parents=True, exist_ok=True)
+Path(os.path.join(name,'resultados_implicito_placa_dell_v6')).mkdir(parents=True, exist_ok=True)
 Path(os.path.join(name,'resultados_explicito_placa_dell')).mkdir(parents=True, exist_ok=True)
 Path(os.path.join(name,'resultados_crank_nicholson_placa_dell')).mkdir(parents=True, exist_ok=True)
 
 def montaKM(X,Y,IEN,regions):
     npoints = X.shape[0]
-    q = 10000
-    cooler = 0
+    q = 65
+    cooler = 1
     if(cooler == 1):
-            q -= 800
-    cpSi = 712  ## 
-    rhoSi = 2330
-    kappa_Si = 1.50
-    alpha_SiAl = (7.172*1e-5)
-    cpPet = 712 ## https://www.plastmetal.com.br/tabelas/820116434bbd/tabela_de_propriedades_polietileno.pdf SINTMID
-    rhoPet = 1790
-    kappa_Pet = 0.085
-    alpha_ladeVidro = (22.6*1e-7) # https://www.braskem.com.br/Portal/Principal/Arquivos/html/boletm_tecnico/Tabela_de_Propriedades_de_Referencia_dos_Compostos_de_PVC.pdf
-    cpCu = 394
-    rhoCu = 8960
-    kappa_Cu = 4.01
-    alpha_Cu = (11.234*1e-5)
-    cpAl = 921
-    rhoAl = 2700
-    kappa_Al = 204
-    alpha_Al = (8.418*1e-5)
+            q -= 33.4
+    cpSi = .867  ## 
+    rhoSi = 2.659
+    kappa_Si = 1.61
+    alpha_SiAl = kappa_Si/(rhoSi*cpSi)#(7.172*1e-5)
+    cpPet = .712 ## https://www.plastmetal.com.br/tabelas/820116434bbd/tabela_de_propriedades_polietileno.pdf SINTMID
+    rhoPet = 1.790
+    kappa_Pet = 0.22
+    alpha_ladeVidro = kappa_Pet/(cpPet*rhoPet)#(22.6*1e-7) # https://www.braskem.com.br/Portal/Principal/Arquivos/html/boletm_tecnico/Tabela_de_Propriedades_de_Referencia_dos_Compostos_de_PVC.pdf
+    cpCu = .383
+    rhoCu = 8.960
+    kappa_Cu = 3.86
+    alpha_Cu = kappa_Cu/(rhoCu*cpCu)#(11.234*1e-5)
+    cpAl = .921
+    rhoAl = 2.700
+    kappa_Al = 2.04
+    alpha_Al = kappa_Al/(rhoAl*cpAl)#(8.418*1e-5)
     alpha = np.ones(len(IEN), dtype='float')
     kappa = np.ones(len(IEN), dtype='float')
     rho = np.ones(len(IEN), dtype='float')
@@ -144,9 +144,9 @@ def montaKM(X,Y,IEN,regions):
             cv[elem] = cpSi
             rho[elem] = rhoSi
             alpha[elem] = alpha_SiAl
-            Q[v1] = q*0.1/(rho[elem]*cv[elem])
-            Q[v2] = q*0.1/(rho[elem]*cv[elem])
-            Q[v3] = q*0.1/(rho[elem]*cv[elem])
+            Q[v1] = q*0.15/(rho[elem]*cv[elem])
+            Q[v2] = q*0.15/(rho[elem]*cv[elem])
+            Q[v3] = q*0.15/(rho[elem]*cv[elem])
         if(regions[elem] == 5): ## SSD M2
             kappa[elem] = kappa_Cu
             cv[elem] = cpCu
@@ -168,9 +168,9 @@ def montaKM(X,Y,IEN,regions):
             cv[elem] = cpSi
             rho[elem] = rhoSi
             alpha[elem] = alpha_SiAl
-            Q[v1] = q*0.2/(rho[elem]*cv[elem])
-            Q[v2] = q*0.2/(rho[elem]*cv[elem])
-            Q[v3] = q*0.2/(rho[elem]*cv[elem])
+            Q[v1] = q*0.15/(rho[elem]*cv[elem])
+            Q[v2] = q*0.15/(rho[elem]*cv[elem])
+            Q[v3] = q*0.15/(rho[elem]*cv[elem])
         A = np.absolute((1/2)*np.linalg.det([[1,xi,yi],[1,xj,yj],[1,xk,yk]]))
         ke_x = (1/(4*A))*np.array([[bi**2,bi*bj,bi*bk],[bj*bi,bj**2,bj*bk],[bk*bi,bk*bj,bk**2]])
         ke_y = (1/(4*A))*np.array([[ci**2,ci*cj,ci*ck],[cj*ci,cj**2,cj*ck],[ck*ci,ck*cj,ck**2]])
@@ -287,10 +287,13 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
     #     if X[i]<=0.8 and X[i] >= 0.6 and Y[i] <= 0.8 and Y[i]>=0.6: 
     #         Q[i] = (q/(rho*cv))
     index = 0
-    while(e > lim_e):
+    t = 0
+    while(index < 60):
         Tpast = T
-        A = (M/dt + theta*K)
-        b = ((M/dt)@T + M@Q - ((1-theta)*K)@T)
+        # A = (M/dt + theta*K)
+        # b = ((M/dt)@T + M@Q - ((1-theta)*K)@T)
+        A = (K)
+        b = (M@Q)
         for i in contorno_dell:
             A[i,:] = 0.0
             A[i,i] = 1.0
@@ -313,10 +316,15 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
         xy = np.stack((X, Y), axis=-1)
         verts = xy[IEN]
         verts2 = xy[cc]
+        indice, = np.where(T == T.max())
+        XTmax = X[indice]
+        YTmax = Y[indice]
+        Tmax = T[indice]
+        t += dt
         fig, ax = plt.subplots()
         surf = ax.tricontourf(X,Y,Z,200,cmap=matplotlib.cm.jet, extent=(X.min(),
-                           X.max(), Y.min(), Y.max()),vmin=0,vmax=180)
-        fig.set_size_inches(8, 8)
+                           X.max(), Y.min(), Y.max()),vmin=0,vmax=350)
+        fig.set_size_inches(10, 10)
         ax=plt.gca()
         pc = matplotlib.collections.PolyCollection(verts,edgecolors=('lightgray',),
                                                       facecolor='None',
@@ -327,7 +335,7 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
                                                       linewidths=(0.7,))
         ax.add_collection(pc2)
         #plt.plot(X,Y,'w.')
-        plt.title('Distrubuição de calor no regime transiente 2D')
+        plt.title(r'Solution of $\frac{M}{dt} T^{n+1} + \theta \alpha K T^{n+1} = \frac{M}{dt} T^{n} + Q^{n} + ( 1 - \theta ) \alpha K T^{n} $'+"\n$T_{max}$"+f" = {Tmax[0]}, "+"$X_{Tmax}$ = "+f"{XTmax[0]}, "+"$Y_{Tmax}$ = "+f"{YTmax[0]}"+f"\n # de nós = {npoints}; # de elementos = {ne}\ndt = {dt};  t = {t}")
         plt.xlabel('comprimento da placa no eixo X [cm]')
         plt.ylabel('comprimento da placa no eixo Y [cm]')
         #surf = plt.imshow(X,Y,Z, interpolation='quadric', origin='lower',
@@ -345,7 +353,7 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
         if(theta == 0):
             subname = 'resultados_explicito_placa_dell'
         if(theta == 1):
-            subname = 'resultados_implicito_placa_dell_v4_cooler'
+            subname = 'resultados_implicito_placa_dell_v6'
         if(theta == 1/2):
             subname = 'resultados_crank_nicholson_placa_dell'
         plt.savefig(os.path.join(name, subname, f'{index:04}.png'))
@@ -359,7 +367,7 @@ def solveWithTheta(theta = 1,dt=0.5,lim_e=1e-5):
     img, *imgs = [Image.open(f) for f in sorted(glob.glob(fp_in))]
     img.save(fp=fp_out, format='GIF', append_images=imgs,
               save_all=True, duration=dt*1000, loop=0)
-solveWithTheta(1,3600)
+solveWithTheta(1,1)
 # msh = meshio.read('placa-mae-dell-inspiron-5547.msh')
 # X = msh.points[:,0]
 # Y = msh.points[:,1]

@@ -17,8 +17,10 @@ Line(3) = {3, 4};
 //+
 Line(4) = {4, 1};
 //+
+Circle(5) = {1.5, 0.5, 0, 0.1, 0, 2*Pi};
+//+
 Line Loop(1) = {2, 3, 4, 1};
 //+
-Plane Surface(1) = {1};
+Line Loop(2) = {5};
 //+
-Circle(5) = {1.5, 0.5, 0, 0.25, 0, 2*Pi};
+Plane Surface(1) = {1, 2};
