@@ -374,7 +374,7 @@ def solveWithTheta(theta = 1,dt=0.1,lim_e=1e-5):
     img.save(fp=fp_out, format='GIF', append_images=imgs,
               save_all=True, duration=dt*1000, loop=0)
 #solveWithTheta(1,0.01)
-msh = meshio.read('canalqq.msh')
+msh = meshio.read('canal.msh')
 X = msh.points[:,0]
 Y = msh.points[:,1]
 IEN = msh.cells['triangle']
