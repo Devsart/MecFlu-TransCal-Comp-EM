@@ -1,6 +1,6 @@
 # 🌊 Mecânica dos Fluidos e 🔥 Transferência de Calor Computacional 💻
 
-Sejam bem-vindos car@s MecAmig@s! 👷‍♀️⚙️
+Sejam bem-vind@s car@s MecAmig@s! 👷‍♀️⚙️
 
 Recentemente, atualizei o repositório para que os itens ficassem melhor organizados em pastas próprias para os devidos tópicos 😄. Sendo assim, algumas linhas de código podem apresentar problemas no que se diz respeito a utilização de malhas ou localização de diretórios. 🛑👇
 
